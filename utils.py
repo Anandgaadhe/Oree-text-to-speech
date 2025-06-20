@@ -1,34 +1,24 @@
-import pyttsx3
 import os
 import logging
 from PIL import Image, ImageDraw, ImageFont
 import tempfile
 import subprocess
+from gtts import gTTS
 
 def generate_audio(text, output_path, rate=200):
     """
-    Generate audio from text using pyttsx3 with fallback to gTTS
+    Generate audio from text using gTTS only (cloud compatible)
     """
     try:
-        engine = pyttsx3.init()
-        engine.setProperty('rate', rate)
-        engine.save_to_file(text, output_path)
-        engine.runAndWait()
+        tts = gTTS(text)
+        tts.save(output_path)
         if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
             return True
         else:
-            raise Exception("pyttsx3 failed to generate audio file")
+            raise Exception("gTTS failed to generate audio file")
     except Exception as e:
-        logging.error(f"Error generating audio with pyttsx3: {str(e)}")
-        # Fallback to gTTS
-        try:
-            from gtts import gTTS
-            tts = gTTS(text)
-            tts.save(output_path)
-            return os.path.exists(output_path) and os.path.getsize(output_path) > 0
-        except Exception as e2:
-            logging.error(f"Error generating audio with gTTS fallback: {str(e2)}")
-            return False
+        logging.error(f"Error generating audio with gTTS: {str(e)}")
+        return False
 
 def generate_video(text, output_path, bg_color="#000000", text_color="#FFFFFF", duration=10):
     """

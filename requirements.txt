@@ -9,3 +9,4 @@ pyttsx3
 Pillow
 email_validator
 pytest
+gtts
