@@ -7,37 +7,49 @@ import subprocess
 
 def generate_audio(text, output_path, rate=200):
     """
-    Generate audio from text using pyttsx3
+    Generate audio from text using pyttsx3 with fallback to gTTS
     """
     try:
-        import pyttsx3
         engine = pyttsx3.init()
         engine.setProperty('rate', rate)
         engine.save_to_file(text, output_path)
         engine.runAndWait()
-        return os.path.exists(output_path) and os.path.getsize(output_path) > 0
+        if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+            return True
+        else:
+            raise Exception("pyttsx3 failed to generate audio file")
     except Exception as e:
         logging.error(f"Error generating audio with pyttsx3: {str(e)}")
-        return False
+        # Fallback to gTTS
+        try:
+            from gtts import gTTS
+            tts = gTTS(text)
+            tts.save(output_path)
+            return os.path.exists(output_path) and os.path.getsize(output_path) > 0
+        except Exception as e2:
+            logging.error(f"Error generating audio with gTTS fallback: {str(e2)}")
+            return False
 
 def generate_video(text, output_path, bg_color="#000000", text_color="#FFFFFF", duration=10):
     """
     Generate a simple video with text using PIL and FFmpeg
+    Optimized for lower memory usage and faster processing
     """
     try:
-        # Video dimensions
-        width, height = 1280, 720
-        fps = 24
+        logging.info("Starting video generation")
+        # Video dimensions reduced to 640x360 for optimization
+        width, height = 640, 360
+        fps = 15  # Reduced frame rate
         total_frames = duration * fps
         
         # Convert hex colors to RGB tuples
         bg_rgb = _hex_to_rgb(bg_color)
         text_rgb = _hex_to_rgb(text_color)
         
-        # Calculate font size based on text length
-        base_font_size = 60
+        # Calculate font size based on text length, smaller base font size
+        base_font_size = 30
         if len(text) > 100:
-            font_size = max(30, base_font_size - (len(text) // 20))
+            font_size = max(15, base_font_size - (len(text) // 20))
         else:
             font_size = base_font_size
         
@@ -78,12 +90,14 @@ def generate_video(text, output_path, bg_color="#000000", text_color="#FFFFFF", 
                 frame_path = frame_pattern % frame_num
                 img.save(frame_path)
             
-            # Use FFmpeg to create video from frames
+            # Use FFmpeg to create video from frames with compression options
             cmd = [
                 'ffmpeg', '-y',
                 '-framerate', str(fps),
                 '-i', frame_pattern,
                 '-c:v', 'libx264',
+                '-preset', 'fast',
+                '-crf', '28',  # Higher CRF for more compression
                 '-pix_fmt', 'yuv420p',
                 '-t', str(duration),
                 output_path
@@ -92,11 +106,15 @@ def generate_video(text, output_path, bg_color="#000000", text_color="#FFFFFF", 
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
             
             if result.returncode == 0:
+                logging.info("Video generation completed successfully")
                 return os.path.exists(output_path) and os.path.getsize(output_path) > 0
             else:
                 logging.error(f"FFmpeg error: {result.stderr}")
                 return False
         
+    except MemoryError:
+        logging.error("MemoryError: Video generation ran out of memory")
+        return False
     except Exception as e:
         logging.error(f"Error generating video: {str(e)}")
         return False
