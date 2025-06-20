@@ -20,7 +20,9 @@ app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key-change-in-prod
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Configure the database
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///app.db")
+# Update the database URI to use PostgreSQL connection string from Render
+# Make sure to install psycopg2-binary package: pip install psycopg2-binary
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "postgresql://anand:BU1ZsFl2MumWi9FdO8j0Y5wsq9m23xts@dpg-d1afbjripnbc73a2crt0-a/oreedb")
 app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_recycle": 300,
     "pool_pre_ping": True,
