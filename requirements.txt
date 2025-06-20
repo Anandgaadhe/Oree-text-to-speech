@@ -7,3 +7,4 @@ Werkzeug
 Flask-WTF
 pyttsx3
 Pillow
+email_validator
