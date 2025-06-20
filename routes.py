@@ -84,8 +84,8 @@ def text_to_speech():
             filename = f"audio_{uuid.uuid4().hex[:8]}.wav"
             file_path = os.path.join(current_app.config['GENERATED_FOLDER'], filename)
             
-            # Generate audio file
-            success = generate_audio(form.text.data, file_path, int(form.voice_rate.data))
+            # Generate audio file (gTTS does not support speech rate)
+            success = generate_audio(form.text.data, file_path)
             
             if success:
                 # Get file size

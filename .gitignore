@@ -1,0 +1,8 @@
+__pycache__/
+instance/
+static/generated/
+*.pyc
+*.pyo
+*.db
+.env
+.DS_Store

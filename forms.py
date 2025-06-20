@@ -39,13 +39,6 @@ class TextToSpeechForm(FlaskForm):
         DataRequired(),
         Length(min=1, max=5000, message='Text must be between 1 and 5000 characters.')
     ], render_kw={"placeholder": "Enter the text you want to convert to speech...", "rows": 6})
-    voice_rate = SelectField('Speech Rate', choices=[
-        ('100', 'Very Slow'),
-        ('150', 'Slow'),
-        ('200', 'Normal'),
-        ('250', 'Fast'),
-        ('300', 'Very Fast')
-    ], default='200')
     submit = SubmitField('Generate Audio')
 
 class TextToVideoForm(FlaskForm):
